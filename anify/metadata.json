@@ -1,0 +1,27 @@
+{
+  "modules": [
+    {
+      "name": "Anify Anime",
+      "version": "0.1.0",
+      "author": "Eltik",
+      "filePath": "./modules/Anify-Anime.module",
+      "subtypes": ["Anime"],
+      "iconPath": "./icons/icon.jpg",
+      "id": "37ab7fcd-c9b5-431e-9a4c-da3fb1bb2cc8"
+    },
+    {
+        "name": "Anify Manga",
+        "version": "1.0.0",
+        "author": "Eltik",
+        "filePath": "./modules/Anify-Manga.module",
+        "subtypes": ["Manga"],
+        "iconPath": "./icons/icon.jpg",
+        "id": "c2eb6d9a-a33f-405c-ab61-1a070190c402"
+      }
+  ],
+  "url": "https://anify.eltik.cc",
+  "title": "Anify",
+  "id": "anify",
+  "author": "Eltik",
+  "description": "3-in-1 anime, manga, and light novels module utilizing the Anify API."
+}

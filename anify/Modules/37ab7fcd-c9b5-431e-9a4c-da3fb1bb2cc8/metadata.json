@@ -1,0 +1,9 @@
+{
+  "id": "37ab7fcd-c9b5-431e-9a4c-da3fb1bb2cc8",
+  "name": "Anify-Anime",
+  "author": "Eltik",
+  "description": "A module to get anime data from Anify.",
+  "version": "0.1.0",
+  "type": 0,
+  "subtypes": ["Anime"]
+}

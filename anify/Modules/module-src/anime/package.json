@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "build": "bun run build:code",
+    "build:move": "",
+    "build:code": "bunx esbuild src/anify-anime/anify-anime.ts --bundle --target=safari11 --outfile=code.js --global-name=source",
+    "lint": "bun run prettier && bun run eslint",
+    "eslint": "bunx eslint --fix .",
+    "prettier": "prettier --write .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "@typescript-eslint/parser": "^7.15.0",
+    "bun-types": "^1.1.18",
+    "cheerio": "^1.0.0-rc.12",
+    "copyfiles": "^2.4.1",
+    "eslint": "8.56.0",
+    "prettier": "^3.3.2",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.5.3"
+  }
+}
