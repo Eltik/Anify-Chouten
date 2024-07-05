@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "build": "bun run build:code",
-    "build:move": "",
+    "build": "bun run build:clean && bun run build:code && bun run build:move",
+    "build:clean": "jq -r .id metadata.json | xargs -I {} sh -c 'bunx rimraf ../../{}'",
+    "build:move": "jq -r .id metadata.json | xargs -I {} sh -c 'mkdir -p ../../{} && bunx copyfiles code.js metadata.json icon.jpg ../../{}'",
     "build:code": "bunx esbuild src/anify-anime/anify-anime.ts --bundle --target=safari11 --outfile=code.js --global-name=source",
     "lint": "bun run prettier && bun run eslint",
     "eslint": "bunx eslint --fix .",
