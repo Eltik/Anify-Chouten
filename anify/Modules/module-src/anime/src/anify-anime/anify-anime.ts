@@ -1,10 +1,28 @@
-import { BaseModule, InfoData, SearchResult, VideoContent, MediaList, Status, MediaType, MediaSource, ModuleSettings, ModuleType, InputTypes, InputSetting, ServerList, DiscoverData, SeasonData, ServerData, MediaDataType, SearchData, DiscoverListing, DiscoverTypes, MediaPagination } from "../types";
-import { load } from "cheerio";
-import { parseSkipData } from "./utils/skipData";
-import { decodeVideoSkipData, getVrf } from "./utils/urlGrabber";
-import { getVideo } from "./extractor";
-import { AJAX_BASENAME } from "./utils/variables";
-import { Anime, EpisodeData, MediaStatus, ProviderType, Seasonal } from "./types";
+import {
+    BaseModule,
+    InfoData,
+    SearchResult,
+    VideoContent,
+    MediaList,
+    Status,
+    MediaType,
+    MediaSource,
+    ModuleSettings,
+    ModuleType,
+    InputTypes,
+    InputSetting,
+    ServerList,
+    DiscoverData,
+    SeasonData,
+    ServerData,
+    DiscoverListing,
+    DiscoverTypes,
+    MediaPagination,
+    MediaDataType,
+    SubtitleType,
+    MediaInfo,
+} from "../types";
+import { Anime, EpisodeData, MediaStatus, ProviderType, Seasonal, Source } from "./types";
 
 export default class AnifyAnimeModule extends BaseModule implements VideoContent {
     baseUrl = "https://anify.eltik.cc";
@@ -149,6 +167,23 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
         const resp = await request(url, "GET");
         const json: Anime = JSON.parse(resp.body);
 
+        const episodesp = await request(`${this.baseName}/episodes/${json.id}`, "GET");
+        const episodesData: EpisodeData[] = JSON.parse(episodesp.body);
+
+        const seasons: SeasonData[] = [];
+        for (const mapping of json.mappings) {
+            const episodes = episodesData.filter((episode) => episode.providerId === mapping.providerId);
+            if (!episodes[0] || episodes[0]?.episodes.length === 0) continue;
+
+            if (mapping.providerType === ProviderType.ANIME || mapping.providerId === ProviderType.MANGA) {
+                seasons.push({
+                    name: mapping.providerId,
+                    url: `${json.id}/${mapping.providerId}`,
+                    selected: seasons.length === 0,
+                } as SeasonData);
+            }
+        }
+
         const data: InfoData = {
             titles: {
                 primary: json.title.english ?? json.title.romaji ?? json.title.native ?? "",
@@ -162,18 +197,7 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
             rating: json.averageRating,
             yearReleased: json.year ?? 2024,
             mediaType: MediaType.EPISODES,
-            seasons: json.mappings
-                .map((mapping) => {
-                    if (mapping.providerType === ProviderType.ANIME || mapping.providerId === ProviderType.MANGA) {
-                        return {
-                            name: mapping.providerId,
-                            url: `${json.id}/${mapping.providerId}`,
-                        };
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(Boolean) as SeasonData[],
+            seasons,
         };
 
         return data;
@@ -188,34 +212,27 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
 
         const data: MediaList[] = [];
 
-        const chunkArray = <T>(arr: T[], chunkSize: number): T[][] => {
-            const result: T[][] = [];
-            for (let i = 0; i < arr.length; i += chunkSize) {
-                result.push(arr.slice(i, i + chunkSize));
-            }
-            return result;
-        };
-
         for (const provider of json) {
             if (provider.providerId !== providerId) continue;
 
-            const pagination: MediaPagination[] = [];
+            const items: MediaInfo[] = [];
 
-            const episodeChunks = chunkArray(provider.episodes, 4);
-            for (let i = 0; i < episodeChunks.length; i++) {
-                pagination.push({
-                    id: `${id}-${provider.providerId}-${i}`,
-                    items: episodeChunks[i].map((episode) => {
-                        return {
-                            title: episode.title ?? `Episode ${episode.number}`,
-                            number: episode.number,
-                            url: `${id}-${provider.providerId}-${episode.id}-${episode.number}`,
-                            thumbnail: episode.img ?? undefined,
-                        };
-                    }),
-                    title: `${id}-${provider.providerId}-${i}`,
+            for (const item of provider.episodes) {
+                items.push({
+                    title: item.title ?? `Episode ${item.number}`,
+                    number: item.number,
+                    url: `${id}-${this.base64Encode(provider.providerId)}-${this.base64Encode(item.id)}-${item.number}`,
+                    thumbnail: item.img ?? undefined,
                 });
             }
+
+            const pagination: MediaPagination[] = [
+                {
+                    id: `${id}-${provider.providerId}`,
+                    items,
+                    title: `${id}-${provider.providerId}`,
+                },
+            ];
 
             data.push({
                 title: provider.providerId,
@@ -223,87 +240,80 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
             });
         }
 
-        console.log(JSON.stringify(data));
+        if (data.length === 0) {
+            console.log("Error fetching episodes. Content length is zero.");
+            console.log(`Episode response length: ${json.length}`);
+            console.log(JSON.stringify(json));
+        }
 
         return data;
     }
 
-    async servers(_url: string): Promise<ServerList[]> {
-        const [episodeId, variantType] = _url.split(" | ");
-
-        const html = await request(`${AJAX_BASENAME}/server/list/${episodeId}?vrf=${getVrf(episodeId)}`, "GET");
-
-        const json = JSON.parse(html.body);
-
-        const $ = load(json["result"]);
-
-        // TODO- TEST: I THINK I FUCKED SMTH UP NOT SURE
-        const servers: ServerData[] = $(".type")
-            .map((_, serverCategory) => {
-                const categoryRef = $(serverCategory);
-                // const sourceType = categoryRef.find("label").text().trim()
-                const sourceType = categoryRef.attr("data-type");
-                if (sourceType != variantType) return undefined;
-
-                return categoryRef
-                    .find("ul")
-                    .find("li")
-                    .map((_, server) => {
-                        const serverRef = $(server);
-                        const serverName = serverRef.text();
-                        const linkId = serverRef.attr("data-link-id")!;
-                        return {
-                            name: `${serverName}`,
-                            url: linkId,
-                        } satisfies ServerData;
-                    })
-                    .get();
-            })
-            .get();
+    async servers(url: string): Promise<ServerList[]> {
+        const servers: ServerData[] = [
+            {
+                name: "Default",
+                url,
+            },
+        ];
 
         return [
             {
-                title: "Aniwave",
+                title: "Anify",
                 servers: servers,
             } satisfies ServerList,
         ];
     }
 
-    async sources(_url: string): Promise<MediaSource> {
-        try {
-            let data = await request(`${AJAX_BASENAME}/server/${_url}?vrf=${getVrf(_url)}`, "GET");
+    async sources(url: string): Promise<MediaSource> {
+        const data: MediaSource = {
+            sources: [],
+            skips: [],
+            subtitles: [],
+            previews: [],
+        };
 
-            if (data.statusCode != 200) {
-                // @ts-ignore
-                await callWebview(`${AJAX_BASENAME}/server/${_url}?vrf=${getVrf(_url)}`);
-                data = await request(`${AJAX_BASENAME}/server/${_url}?vrf=${getVrf(_url)}`, "GET");
-            }
+        const id = url.split("-")[0];
+        const providerId = this.base64Decode(url.split("-")[1]);
+        const watchId = this.base64Decode(url.split("-")[2]);
+        const episodeNumber = url.split("-")[3];
 
-            const result = JSON.parse(data.body)["result"];
-            const url = decodeVideoSkipData(result["url"]);
-            const skipData = parseSkipData(decodeVideoSkipData(result["skip_data"]));
+        const resp = await request(`${this.baseName}/sources?id=${id}&providerId=${providerId}&watchId=${watchId}&episodeNumber=${episodeNumber}&subType=sub`, "GET");
+        const json: Source = JSON.parse(resp.body);
+        console.log(JSON.stringify(json));
 
-            const sourceData = await getVideo(url);
-            const videos = sourceData.videos;
-
-            const mediaSource: MediaSource = {
-                sources: videos.map((video) => ({
-                    quality: video.quality ?? "auto",
-                    file: video.url,
-                    type: MediaDataType.HLS,
-                })),
-                skips: skipData,
-                subtitles: sourceData.subtitles ?? [],
-                previews: [], // Pretty sure Aniwave doesn't send those.
-            };
-
-            console.log(`${mediaSource}`);
-
-            return mediaSource;
-        } catch (error) {
-            console.error(`${error}`);
+        if (json.intro.end > 0) {
+            data.skips.push({
+                title: "Intro",
+                start: json.intro.start,
+                end: json.intro.end,
+            });
         }
-        throw "Streams failed.";
+        if (json.outro.end > 0) {
+            data.skips.push({
+                title: "Outro",
+                start: json.outro.start,
+                end: json.outro.end,
+            });
+        }
+
+        for (const source of json.sources) {
+            data.sources.push({
+                file: source.url,
+                quality: source.quality,
+                type: MediaDataType.HLS,
+            });
+        }
+
+        for (const subtitle of json.subtitles) {
+            data.subtitles.push({
+                url: subtitle.url,
+                language: subtitle.lang,
+                type: SubtitleType.VTT,
+            });
+        }
+
+        return data;
     }
 
     private parseStatus(status: MediaStatus): Status {
@@ -319,5 +329,54 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
             default:
                 return Status.UNKNOWN;
         }
+    }
+
+    private base64Encode(input: string): string {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+        const str = input;
+        let output = "";
+
+        for (let block = 0, charCode, i = 0, map = chars; str.charAt(i | 0) || ((map = "="), i % 1); output += map.charAt(63 & (block >> (8 - (i % 1) * 8)))) {
+            charCode = str.charCodeAt((i += 3 / 4));
+
+            if (charCode > 0xff) {
+                throw new Error("'customBtoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+            }
+
+            block = (block << 8) | charCode;
+        }
+
+        return output;
+    }
+
+    private base64Decode(input: string): string {
+        const base64abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        let decoded = "";
+
+        // Remove any characters not in the base64 characters list
+        input = input.replace(/[^A-Za-z0-9+/=]/g, "");
+
+        for (let i = 0; i < input.length; ) {
+            const enc1 = base64abc.indexOf(input.charAt(i++));
+            const enc2 = base64abc.indexOf(input.charAt(i++));
+            const enc3 = base64abc.indexOf(input.charAt(i++));
+            const enc4 = base64abc.indexOf(input.charAt(i++));
+
+            const chr1 = (enc1 << 2) | (enc2 >> 4);
+            const chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+            const chr3 = ((enc3 & 3) << 6) | enc4;
+
+            decoded += String.fromCharCode(chr1);
+
+            if (enc3 !== 64) {
+                decoded += String.fromCharCode(chr2);
+            }
+            if (enc4 !== 64) {
+                decoded += String.fromCharCode(chr3);
+            }
+        }
+
+        return decoded;
     }
 }

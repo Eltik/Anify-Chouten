@@ -15,4 +15,5 @@ Dockerfile.*
 bun.lockb
 .prettierignore
 *.png
+*.jpg
 .DS_Store
