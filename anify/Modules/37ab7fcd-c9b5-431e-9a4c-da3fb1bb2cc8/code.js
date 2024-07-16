@@ -178,14 +178,17 @@ var source = (() => {
           pages: (_a = json.lastPage) != null ? _a : 1
         },
         results: json.results.map((item) => {
-          var _a2, _b, _c, _d, _e, _f, _g, _h;
+          var _a2, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
           return {
-            title: (_c = (_b = (_a2 = item.title.english) != null ? _a2 : item.title.romaji) != null ? _b : item.title.native) != null ? _c : "",
-            indicator: String((_d = item.averageRating) != null ? _d : 0),
-            poster: (_f = (_e = item.coverImage) != null ? _e : item.bannerImage) != null ? _f : "",
             url: "".concat(this.baseName, "/info/").concat(item.id),
-            current: (_g = item.currentEpisode) != null ? _g : 0,
-            total: (_h = item.totalEpisodes) != null ? _h : 0
+            titles: {
+              primary: (_c = (_b = (_a2 = item.title.english) != null ? _a2 : item.title.romaji) != null ? _b : item.title.native) != null ? _c : "",
+              secondary: (_f = (_e = (_d = item.title.romaji) != null ? _d : item.title.native) != null ? _e : item.title.english) != null ? _f : ""
+            },
+            poster: (_h = (_g = item.coverImage) != null ? _g : item.bannerImage) != null ? _h : "",
+            indicator: String((_i = item.averageRating) != null ? _i : 0),
+            current: (_j = item.currentEpisode) != null ? _j : 0,
+            total: (_k = item.totalEpisodes) != null ? _k : 0
           };
         })
       };
@@ -264,8 +267,8 @@ var source = (() => {
       }
       return data;
     }
-    async servers(url) {
-      const servers = [
+    async sources(url) {
+      const sources = [
         {
           name: "Default",
           url
@@ -274,13 +277,13 @@ var source = (() => {
       return [
         {
           title: "Anify",
-          servers
+          sources
         }
       ];
     }
-    async sources(url) {
+    async streams(url) {
       const data = {
-        sources: [],
+        streams: [],
         skips: [],
         subtitles: [],
         previews: []
@@ -307,7 +310,7 @@ var source = (() => {
         });
       }
       for (const source of json.sources) {
-        data.sources.push({
+        data.streams.push({
           file: source.url,
           quality: source.quality,
           type: 0 /* HLS */

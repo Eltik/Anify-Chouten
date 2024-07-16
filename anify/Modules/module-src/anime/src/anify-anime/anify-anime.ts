@@ -6,21 +6,21 @@ import {
     MediaList,
     Status,
     MediaType,
-    MediaSource,
     ModuleSettings,
     ModuleType,
     InputTypes,
     InputSetting,
-    ServerList,
     DiscoverData,
     SeasonData,
-    ServerData,
     DiscoverListing,
     DiscoverTypes,
     MediaPagination,
     MediaDataType,
     SubtitleType,
     MediaInfo,
+    SourceList,
+    MediaStream,
+    SourceData,
 } from "../types";
 import { Anime, EpisodeData, MediaStatus, ProviderType, Seasonal, Source } from "./types";
 
@@ -152,10 +152,13 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
             },
             results: json.results.map((item) => {
                 return {
-                    title: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
-                    indicator: String(item.averageRating ?? 0),
-                    poster: item.coverImage ?? item.bannerImage ?? "",
                     url: `${this.baseName}/info/${item.id}`,
+                    titles: {
+                        primary: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
+                        secondary: item.title.romaji ?? item.title.native ?? item.title.english ?? "",
+                    },
+                    poster: item.coverImage ?? item.bannerImage ?? "",
+                    indicator: String(item.averageRating ?? 0),
                     current: item.currentEpisode ?? 0,
                     total: item.totalEpisodes ?? 0,
                 };
@@ -249,8 +252,8 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
         return data;
     }
 
-    async servers(url: string): Promise<ServerList[]> {
-        const servers: ServerData[] = [
+    async sources(url: string): Promise<SourceList[]> {
+        const sources: SourceData[] = [
             {
                 name: "Default",
                 url,
@@ -260,14 +263,14 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
         return [
             {
                 title: "Anify",
-                servers: servers,
-            } satisfies ServerList,
+                sources,
+            },
         ];
     }
 
-    async sources(url: string): Promise<MediaSource> {
-        const data: MediaSource = {
-            sources: [],
+    async streams(url: string): Promise<MediaStream> {
+        const data: MediaStream = {
+            streams: [],
             skips: [],
             subtitles: [],
             previews: [],
@@ -298,7 +301,7 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
         }
 
         for (const source of json.sources) {
-            data.sources.push({
+            data.streams.push({
                 file: source.url,
                 quality: source.quality,
                 type: MediaDataType.HLS,

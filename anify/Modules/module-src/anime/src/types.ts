@@ -171,18 +171,18 @@ export enum ModuleType {
 
 export type VideoContent = {
     /**
-     * Fetches the servers of a given url
-     *
-     * @param url - The url where the servers are found
-     */
-    servers(url: string): Promise<ServerList[]>;
-
-    /**
      * Fetches the sources of a given url
      *
      * @param url - The url where the sources are found
      */
-    sources(url: string): Promise<MediaSource>;
+    sources(url: string): Promise<SourceList[]>;
+
+    /**
+     * Fetches the streams of a given url
+     *
+     * @param url - The url where the streams are found
+     */
+    streams(url: string): Promise<MediaStream>;
 };
 
 export enum Status {
@@ -285,7 +285,7 @@ export type MediaInfo = {
 
 export type SearchData = {
     url: string;
-    title: string;
+    titles: Titles;
     poster: string;
     indicator: string;
     current?: number;
@@ -303,14 +303,14 @@ export type SearchResult = {
     results: SearchData[];
 };
 
-export type ServerData = {
+export type SourceData = {
     name: string;
     url: string;
 };
 
-export type ServerList = {
+export type SourceList = {
     title: string;
-    servers: ServerData[];
+    sources: SourceData[];
 };
 
 export enum MediaDataType {
@@ -351,9 +351,9 @@ export type MediaPreview = {
     time: number;
 };
 
-export type MediaSource = {
+export type MediaStream = {
     skips: SkipData[];
-    sources: MediaItem[];
+    streams: MediaItem[];
     subtitles: SubtitleData[];
     previews: MediaPreview[];
 };
