@@ -3,7 +3,7 @@
   "name": "Anify Manga",
   "author": "Eltik",
   "description": "A module to get manga data from Anify.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": 0,
   "subtypes": ["Manga"]
 }
