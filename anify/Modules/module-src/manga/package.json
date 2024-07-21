@@ -8,8 +8,7 @@
     "build:repo": "cd ../../../ && jq -r .id metadata.json | xargs -I {} sh -c 'cd ../ && zip -r {}.zip {} -x \"*/node_modules/*\" && echo \"Built repository as {}.zip\"'",
     "lint": "bun run prettier && bun run eslint",
     "eslint": "bunx eslint --fix .",
-    "prettier": "prettier --write .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prettier": "prettier --write ."
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",

@@ -173,3 +173,4 @@ db.sqlite
 keys.json
 bannedIds.json
 .DS_STORE
+package-lock.json
