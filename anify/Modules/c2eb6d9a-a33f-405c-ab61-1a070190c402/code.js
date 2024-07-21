@@ -240,7 +240,7 @@ var source = (() => {
           items.push({
             title: (_a = item.title) != null ? _a : "Chapter ".concat(item.number),
             number: item.number,
-            url: "".concat(id, "-").concat(this.base64Encode(provider.providerId), "-").concat(this.base64Encode(item.id), "-").concat(item.number)
+            url: "".concat(this.base64Encode(id), "-").concat(this.base64Encode(provider.providerId), "-").concat(this.base64Encode(item.id), "-").concat(item.number)
           });
         }
         const pagination = [
@@ -263,7 +263,7 @@ var source = (() => {
       return data;
     }
     async pages(url) {
-      const id = url.split("-")[0];
+      const id = this.base64Decode(url.split("-")[0]);
       const providerId = this.base64Decode(url.split("-")[1]);
       const readId = this.base64Decode(url.split("-")[2]);
       const chapterNumber = url.split("-")[3];

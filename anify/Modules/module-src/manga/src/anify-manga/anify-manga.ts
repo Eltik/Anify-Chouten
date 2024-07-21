@@ -197,7 +197,7 @@ export default class AnifyMangaModule extends BaseModule implements BookContent 
                 items.push({
                     title: item.title ?? `Chapter ${item.number}`,
                     number: item.number,
-                    url: `${id}-${this.base64Encode(provider.providerId)}-${this.base64Encode(item.id)}-${item.number}`,
+                    url: `${this.base64Encode(id)}-${this.base64Encode(provider.providerId)}-${this.base64Encode(item.id)}-${item.number}`,
                 });
             }
 
@@ -225,7 +225,7 @@ export default class AnifyMangaModule extends BaseModule implements BookContent 
     }
 
     async pages(url: string): Promise<string[]> {
-        const id = url.split("-")[0];
+        const id = this.base64Decode(url.split("-")[0]);
         const providerId = this.base64Decode(url.split("-")[1]);
         const readId = this.base64Decode(url.split("-")[2]);
         const chapterNumber = url.split("-")[3];
