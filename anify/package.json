@@ -3,6 +3,6 @@
         "build": "bun run build:clean && bun run build:modules && bun run build:repo",
         "build:clean": "find . -type f -name '*.module' -delete && echo 'Deleted all .module files'",
         "build:modules": "for dir in ./Modules/module-src/*/; do (cd \"$dir\" && bun run build && echo \"$dir build successful\"); done",
-        "build:repo": "zip -r $(jq -r '.title' metadata.json).zip $(find . -type f \\( -name '*.module' -o -name 'icon.png' -o -name 'metadata.json' \\) -o -path './Modules' -type d) -x './Modules/module-src/*'"
+        "build:repo": "zip -r $(jq -r '.id' metadata.json).zip $(find . -type f \\( -name '*.module' -o -name 'icon.png' -o -name 'metadata.json' \\) -o -path './Modules' -type d) -x './Modules/module-src/*'"
     }
 }  
