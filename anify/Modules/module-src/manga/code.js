@@ -200,7 +200,7 @@ var source = (() => {
         const chapters = chaptersData.filter((chapter) => chapter.providerId === mapping.providerId);
         if (!chapters[0] || ((_a = chapters[0]) == null ? void 0 : _a.chapters.length) === 0)
           continue;
-        if (mapping.providerType === "ANIME" /* ANIME */ || mapping.providerId === "MANGA" /* MANGA */) {
+        if (mapping.providerType === "MANGA" /* MANGA */) {
           seasons.push({
             name: mapping.providerId,
             url: "".concat(json.id, "/").concat(mapping.providerId),

@@ -151,7 +151,7 @@ export default class AnifyMangaModule extends BaseModule implements BookContent 
             const chapters = chaptersData.filter((chapter) => chapter.providerId === mapping.providerId);
             if (!chapters[0] || chapters[0]?.chapters.length === 0) continue;
 
-            if (mapping.providerType === ProviderType.ANIME || mapping.providerId === ProviderType.MANGA) {
+            if (mapping.providerType === ProviderType.MANGA) {
                 seasons.push({
                     name: mapping.providerId,
                     url: `${json.id}/${mapping.providerId}`,
