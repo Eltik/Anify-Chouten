@@ -89,81 +89,56 @@ var source = (() => {
       const data = [];
       const resp = await request("".concat(this.baseUrl, "/seasonal?type=manga&fields=[id,description,bannerImage,coverImage,title,genres,format,averageRating,totalEpisodes,totalChapters,year,type]"), "GET");
       const json = JSON.parse(resp.body);
-      data.push(
-        {
-          data: json.trending.map((item) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
-            return {
-              url: "".concat(this.baseUrl, "/info/").concat(item.id),
-              description: (_a = item.description) != null ? _a : "No description found.",
-              indicator: String((_b = item.averageRating) != null ? _b : 0),
-              poster: (_d = (_c = item.coverImage) != null ? _c : item.bannerImage) != null ? _d : "",
-              titles: {
-                primary: (_g = (_f = (_e = item.title.english) != null ? _e : item.title.romaji) != null ? _f : item.title.native) != null ? _g : "",
-                secondary: (_j = (_i = (_h = item.title.romaji) != null ? _h : item.title.native) != null ? _i : item.title.english) != null ? _j : ""
-              },
-              total: (_k = item.totalChapters) != null ? _k : 0
-            };
-          }),
+      const trending = this.transformDiscoverData(json.trending);
+      const seasonal = this.transformDiscoverData(json.seasonal);
+      const top = this.transformDiscoverData(json.top);
+      const popular = this.transformDiscoverData(json.popular);
+      if (json.trending.length > 0) {
+        data.push({
+          data: trending,
           title: "Currently Trending",
           type: 0 /* CAROUSEL */
-        },
-        {
-          data: json.seasonal.map((item) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
-            return {
-              url: "".concat(this.baseUrl, "/info/").concat(item.id),
-              description: (_a = item.description) != null ? _a : "No description found.",
-              indicator: String((_b = item.averageRating) != null ? _b : 0),
-              poster: (_d = (_c = item.coverImage) != null ? _c : item.bannerImage) != null ? _d : "",
-              titles: {
-                primary: (_g = (_f = (_e = item.title.english) != null ? _e : item.title.romaji) != null ? _f : item.title.native) != null ? _g : "",
-                secondary: (_j = (_i = (_h = item.title.romaji) != null ? _h : item.title.native) != null ? _i : item.title.english) != null ? _j : ""
-              },
-              total: (_k = item.totalChapters) != null ? _k : 0
-            };
-          }),
+        });
+      }
+      if (json.seasonal.length > 0) {
+        data.push({
+          data: seasonal,
           title: "This Season",
           type: 2 /* GRID_2x */
-        },
-        {
-          data: json.top.map((item) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
-            return {
-              url: "".concat(this.baseUrl, "/info/").concat(item.id),
-              description: (_a = item.description) != null ? _a : "No description found.",
-              indicator: String((_b = item.averageRating) != null ? _b : 0),
-              poster: (_d = (_c = item.coverImage) != null ? _c : item.bannerImage) != null ? _d : "",
-              titles: {
-                primary: (_g = (_f = (_e = item.title.english) != null ? _e : item.title.romaji) != null ? _f : item.title.native) != null ? _g : "",
-                secondary: (_j = (_i = (_h = item.title.romaji) != null ? _h : item.title.native) != null ? _i : item.title.english) != null ? _j : ""
-              },
-              total: (_k = item.totalChapters) != null ? _k : 0
-            };
-          }),
+        });
+      }
+      if (json.top.length > 0) {
+        data.push({
+          data: top,
           title: "Highest Rated",
           type: 2 /* GRID_2x */
-        },
-        {
-          data: json.popular.map((item) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
-            return {
-              url: "".concat(this.baseUrl, "/info/").concat(item.id),
-              description: (_a = item.description) != null ? _a : "No description found.",
-              indicator: String((_b = item.averageRating) != null ? _b : 0),
-              poster: (_d = (_c = item.coverImage) != null ? _c : item.bannerImage) != null ? _d : "",
-              titles: {
-                primary: (_g = (_f = (_e = item.title.english) != null ? _e : item.title.romaji) != null ? _f : item.title.native) != null ? _g : "",
-                secondary: (_j = (_i = (_h = item.title.romaji) != null ? _h : item.title.native) != null ? _i : item.title.english) != null ? _j : ""
-              },
-              total: (_k = item.totalChapters) != null ? _k : 0
-            };
-          }),
+        });
+      }
+      if (json.popular.length > 0) {
+        data.push({
+          data: popular,
           title: "Popular",
           type: 2 /* GRID_2x */
-        }
-      );
+        });
+      }
       return data;
+    }
+    transformDiscoverData(data) {
+      const results = data.map((item) => {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+        return {
+          url: "".concat(this.baseUrl, "/info/").concat(item.id),
+          description: (_a = item.description) != null ? _a : "No description found.",
+          indicator: String((_b = item.averageRating) != null ? _b : 0),
+          poster: (_d = (_c = item.coverImage) != null ? _c : item.bannerImage) != null ? _d : "",
+          titles: {
+            primary: (_g = (_f = (_e = item.title.english) != null ? _e : item.title.romaji) != null ? _f : item.title.native) != null ? _g : "",
+            secondary: (_j = (_i = (_h = item.title.romaji) != null ? _h : item.title.native) != null ? _i : item.title.english) != null ? _j : ""
+          },
+          total: (_k = item.totalChapters) != null ? _k : 0
+        };
+      });
+      return results;
     }
     async search(query, page) {
       var _a;

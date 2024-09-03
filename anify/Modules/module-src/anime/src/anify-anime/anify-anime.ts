@@ -60,82 +60,63 @@ export default class AnifyAnimeModule extends BaseModule implements VideoContent
         const resp = await request(`${this.baseUrl}/seasonal?type=anime&fields=[id,description,bannerImage,coverImage,title,genres,format,averageRating,totalEpisodes,totalChapters,year,type]`, "GET");
         const json: Seasonal = JSON.parse(resp.body);
 
-        data.push(
-            {
-                data: json.trending.map((item) => {
-                    return {
-                        url: `${this.baseUrl}/info/${item.id}`,
-                        description: item.description ?? "No description found.",
-                        indicator: String(item.averageRating ?? 0),
-                        poster: item.coverImage ?? item.bannerImage ?? "",
-                        titles: {
-                            primary: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
-                            secondary: item.title.romaji ?? item.title.native ?? item.title.english ?? "",
-                        },
-                        current: item.currentEpisode ?? 0,
-                        total: item.totalEpisodes ?? 0,
-                    } satisfies DiscoverListing;
-                }),
+        const trending = this.transformDiscoverData(json.trending);
+        const seasonal = this.transformDiscoverData(json.seasonal);
+        const top = this.transformDiscoverData(json.top);
+        const popular = this.transformDiscoverData(json.popular);
+
+        if (json.trending.length > 0) {
+            data.push({
+                data: trending,
                 title: "Currently Trending",
                 type: DiscoverTypes.CAROUSEL,
-            },
-            {
-                data: json.seasonal.map((item) => {
-                    return {
-                        url: `${this.baseUrl}/info/${item.id}`,
-                        description: item.description ?? "No description found.",
-                        indicator: String(item.averageRating ?? 0),
-                        poster: item.coverImage ?? item.bannerImage ?? "",
-                        titles: {
-                            primary: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
-                            secondary: item.title.romaji ?? item.title.native ?? item.title.english ?? "",
-                        },
-                        current: item.currentEpisode ?? 0,
-                        total: item.totalEpisodes ?? 0,
-                    } satisfies DiscoverListing;
-                }),
+            });
+        }
+
+        if (json.seasonal.length > 0) {
+            data.push({
+                data: seasonal,
                 title: "This Season",
                 type: DiscoverTypes.GRID_2x,
-            },
-            {
-                data: json.top.map((item) => {
-                    return {
-                        url: `${this.baseUrl}/info/${item.id}`,
-                        description: item.description ?? "No description found.",
-                        indicator: String(item.averageRating ?? 0),
-                        poster: item.coverImage ?? item.bannerImage ?? "",
-                        titles: {
-                            primary: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
-                            secondary: item.title.romaji ?? item.title.native ?? item.title.english ?? "",
-                        },
-                        current: item.currentEpisode ?? 0,
-                        total: item.totalEpisodes ?? 0,
-                    } satisfies DiscoverListing;
-                }),
+            });
+        }
+
+        if (json.top.length > 0) {
+            data.push({
+                data: top,
                 title: "Highest Rated",
                 type: DiscoverTypes.GRID_2x,
-            },
-            {
-                data: json.popular.map((item) => {
-                    return {
-                        url: `${this.baseUrl}/info/${item.id}`,
-                        description: item.description ?? "No description found.",
-                        indicator: String(item.averageRating ?? 0),
-                        poster: item.coverImage ?? item.bannerImage ?? "",
-                        titles: {
-                            primary: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
-                            secondary: item.title.romaji ?? item.title.native ?? item.title.english ?? "",
-                        },
-                        current: item.currentEpisode ?? 0,
-                        total: item.totalEpisodes ?? 0,
-                    } satisfies DiscoverListing;
-                }),
+            });
+        }
+
+        if (json.popular.length > 0) {
+            data.push({
+                data: popular,
                 title: "Popular",
                 type: DiscoverTypes.GRID_2x,
-            },
-        );
+            });
+        }
 
         return data;
+    }
+
+    transformDiscoverData(data: Anime[]): DiscoverListing[] {
+        const results: DiscoverListing[] = data.map((item) => {
+            return {
+                url: `${this.baseUrl}/info/${item.id}`,
+                description: item.description ?? "No description found.",
+                indicator: String(item.averageRating ?? 0),
+                poster: item.coverImage ?? item.bannerImage ?? "",
+                titles: {
+                    primary: item.title.english ?? item.title.romaji ?? item.title.native ?? "",
+                    secondary: item.title.romaji ?? item.title.native ?? item.title.english ?? "",
+                },
+                current: item.currentEpisode ?? 0,
+                total: item.totalEpisodes ?? 0,
+            } as DiscoverListing;
+        });
+
+        return results;
     }
 
     async search(query: string, page: number): Promise<SearchResult> {
